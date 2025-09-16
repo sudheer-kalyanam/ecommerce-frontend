@@ -25,6 +25,12 @@ export default function AdminLayout({
       return;
     }
     
+    // If no user but we have token and userData, wait a bit for AuthContext to load
+    if (!user && localStorage.getItem('auth_token') && localStorage.getItem('user_data')) {
+      console.log('⏳ [ADMIN LAYOUT] No user in context but data exists, waiting for AuthContext...');
+      return;
+    }
+    
     if (!user) {
       console.log('❌ [ADMIN LAYOUT] No user found, redirecting to login');
       router.push('/auth/login');
@@ -46,6 +52,18 @@ export default function AdminLayout({
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading authentication...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show loading while checking authentication or waiting for AuthContext
+  if (!user && localStorage.getItem('auth_token') && localStorage.getItem('user_data')) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Verifying access...</p>
         </div>
       </div>
     )

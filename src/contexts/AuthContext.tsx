@@ -56,17 +56,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           firstName: parsedUser.firstName
         });
         setUser(parsedUser)
+        console.log('🏁 [AUTH CONTEXT] User state updated, setting loading to false');
+        setLoading(false)
       } catch (error) {
         console.error('❌ [AUTH CONTEXT] Error parsing user data:', error)
         localStorage.removeItem('auth_token')
         localStorage.removeItem('user_data')
+        setLoading(false)
       }
     } else {
-      console.log('⚠️ [AUTH CONTEXT] No token or user data found');
+      console.log('⚠️ [AUTH CONTEXT] No token or user data found, setting loading to false');
+      setLoading(false)
     }
-    
-    console.log('🏁 [AUTH CONTEXT] Setting loading to false');
-    setLoading(false)
   }, [])
 
   const login = (userData: User, token: string) => {
