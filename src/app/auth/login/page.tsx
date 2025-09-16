@@ -24,9 +24,30 @@ function LoginContent() {
 
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
-    if (token) {
-      console.log('🔐 [LOGIN PAGE] User already logged in, redirecting to customer page');
-      router.push('/customer');
+    const userData = localStorage.getItem('user_data');
+    
+    if (token && userData) {
+      try {
+        const user = JSON.parse(userData);
+        console.log('🔐 [LOGIN PAGE] User already logged in, redirecting based on role:', user.role);
+        
+        // Redirect based on user role
+        if (user.role === 'ADMIN') {
+          console.log('🎯 [LOGIN PAGE] Redirecting existing admin user to /admin');
+          router.push('/admin');
+        } else if (user.role === 'SELLER') {
+          console.log('🎯 [LOGIN PAGE] Redirecting existing seller user to /seller');
+          router.push('/seller');
+        } else {
+          console.log('🎯 [LOGIN PAGE] Redirecting existing customer user to /customer');
+          router.push('/customer');
+        }
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        // If user data is corrupted, clear it and stay on login page
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user_data');
+      }
     }
   }, [router]);
 
