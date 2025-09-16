@@ -71,14 +71,17 @@ function LoginContent() {
       
       // Handle OTP requirement
       if (response.requiresOTP) {
-        console.log('📧 [LOGIN PAGE] OTP required, showing mock OTP');
+        console.log('📧 [LOGIN PAGE] OTP required, showing actual OTP from backend');
         
-        // Generate a mock OTP for display
-        const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
-        setMockOtp(generatedOtp);
-        setShowMockOtp(true);
-        
-        toast.success('OTP generated! Check the mock OTP below for testing.');
+        // Use the actual OTP from backend response if available, otherwise show message
+        if (response.otpCode) {
+          setMockOtp(response.otpCode);
+          setShowMockOtp(true);
+          toast.success('OTP generated! Check the OTP below for testing.');
+        } else {
+          // If no OTP in response, show message to check backend logs
+          toast.success('OTP sent! Check backend logs for the actual OTP code.');
+        }
         
         // Start countdown timer
         setRedirectCountdown(5);
