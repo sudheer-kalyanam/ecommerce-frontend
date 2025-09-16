@@ -1,10 +1,31 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 import { toast } from 'sonner'
 
-const API_BASE_URL ="https://ecommerce-backend-production-661f.up.railway.app/api/v1"
+// Dynamic API URL - can switch between deployments
+const getApiBaseUrl = () => {
+  // Check if we're in development
+  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    return 'http://localhost:3000/api/v1'
+  }
+  
+  // Check if Render backend is available (primary)
+  if (process.env.NEXT_PUBLIC_USE_RENDER === 'true') {
+    return 'https://ecommerce-backend-zwx9.onrender.com/api/v1'
+  }
+  
+  // Fallback to Railway (secondary)
+  return 'https://ecommerce-backend-production-661f.up.railway.app/api/v1'
+}
+
+const API_BASE_URL = getApiBaseUrl()
 
 class ApiClient {
   private client: AxiosInstance
+  private fallbackUrls = [
+    'https://ecommerce-backend-zwx9.onrender.com/api/v1',
+    'https://ecommerce-backend-production-661f.up.railway.app/api/v1'
+  ]
+  private currentUrlIndex = 0
 
   constructor() {
     this.client = axios.create({
@@ -16,6 +37,15 @@ class ApiClient {
     })
 
     this.setupInterceptors()
+  }
+
+  private switchToFallback() {
+    if (this.currentUrlIndex < this.fallbackUrls.length - 1) {
+      this.currentUrlIndex++
+      const newBaseURL = this.fallbackUrls[this.currentUrlIndex]
+      console.log(`🔄 [API CLIENT] Switching to fallback URL: ${newBaseURL}`)
+      this.client.defaults.baseURL = newBaseURL
+    }
   }
 
   private setupInterceptors() {
@@ -69,6 +99,13 @@ class ApiClient {
           stack: error.stack,
           timestamp: new Date().toISOString()
         });
+
+        // Try fallback URL if current one fails
+        if (error.code === 'ECONNABORTED' || error.code === 'ERR_NETWORK' || 
+            error.response?.status >= 500) {
+          console.log('🔄 [API CLIENT] Network error, trying fallback...')
+          this.switchToFallback()
+        }
 
         // Only redirect to login if it's not a login/register/otp endpoint
         const isAuthEndpoint = error.config?.url?.includes('/auth/')
