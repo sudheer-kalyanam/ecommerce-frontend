@@ -53,6 +53,13 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Skip static generation for dynamic pages
+  trailingSlash: false,
+  // Disable static optimization
+  experimental: {
+    // optimizeCss: true, // Disabled due to critters module issue
+    staticPageGenerationTimeout: 1000,
+  },
 };
 
 export default nextConfig;
