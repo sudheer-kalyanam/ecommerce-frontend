@@ -10,7 +10,7 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
-  const { user, loading: authLoading } = useAuth()
+  const { user, loading: authLoading, reloadUserData } = useAuth()
 
   useEffect(() => {
     console.log('🔍 [ADMIN LAYOUT] Auth check:', {
@@ -25,9 +25,10 @@ export default function AdminLayout({
       return;
     }
     
-    // If no user but we have token and userData, wait a bit for AuthContext to load
+    // If no user but we have token and userData, try to reload user data
     if (!user && localStorage.getItem('auth_token') && localStorage.getItem('user_data')) {
-      console.log('⏳ [ADMIN LAYOUT] No user in context but data exists, waiting for AuthContext...');
+      console.log('⏳ [ADMIN LAYOUT] No user in context but data exists, trying to reload...');
+      reloadUserData();
       return;
     }
     

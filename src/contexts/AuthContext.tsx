@@ -22,6 +22,7 @@ interface AuthContextType {
   login: (userData: User, token: string) => void
   logout: () => void
   updateUser: (userData: User) => void
+  reloadUserData: () => void
   isAuthenticated: boolean
 }
 
@@ -36,37 +37,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     console.log('🔄 [AUTH CONTEXT] Loading user data from localStorage...');
     
     // Load user data from localStorage on mount
-    const token = localStorage.getItem('auth_token')
-    const userData = localStorage.getItem('user_data')
+    const loadUserData = () => {
+      const token = localStorage.getItem('auth_token')
+      const userData = localStorage.getItem('user_data')
 
-    console.log('🔍 [AUTH CONTEXT] Found data:', {
-      hasToken: !!token,
-      hasUserData: !!userData,
-      tokenLength: token?.length || 0,
-      userDataLength: userData?.length || 0
-    });
+      console.log('🔍 [AUTH CONTEXT] Found data:', {
+        hasToken: !!token,
+        hasUserData: !!userData,
+        tokenLength: token?.length || 0,
+        userDataLength: userData?.length || 0
+      });
 
-    if (token && userData) {
-      try {
-        const parsedUser = JSON.parse(userData)
-        console.log('✅ [AUTH CONTEXT] Successfully parsed user:', {
-          id: parsedUser.id,
-          email: parsedUser.email,
-          role: parsedUser.role,
-          firstName: parsedUser.firstName
-        });
-        setUser(parsedUser)
-        console.log('🏁 [AUTH CONTEXT] User state updated, setting loading to false');
-        setLoading(false)
-      } catch (error) {
-        console.error('❌ [AUTH CONTEXT] Error parsing user data:', error)
-        localStorage.removeItem('auth_token')
-        localStorage.removeItem('user_data')
+      if (token && userData) {
+        try {
+          const parsedUser = JSON.parse(userData)
+          console.log('✅ [AUTH CONTEXT] Successfully parsed user:', {
+            id: parsedUser.id,
+            email: parsedUser.email,
+            role: parsedUser.role,
+            firstName: parsedUser.firstName
+          });
+          setUser(parsedUser)
+          console.log('🏁 [AUTH CONTEXT] User state updated, setting loading to false');
+          setLoading(false)
+        } catch (error) {
+          console.error('❌ [AUTH CONTEXT] Error parsing user data:', error)
+          localStorage.removeItem('auth_token')
+          localStorage.removeItem('user_data')
+          setLoading(false)
+        }
+      } else {
+        console.log('⚠️ [AUTH CONTEXT] No token or user data found, setting loading to false');
         setLoading(false)
       }
-    } else {
-      console.log('⚠️ [AUTH CONTEXT] No token or user data found, setting loading to false');
-      setLoading(false)
+    }
+
+    // Load immediately
+    loadUserData()
+
+    // Also listen for storage events (when localStorage changes in other tabs)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'auth_token' || e.key === 'user_data') {
+        console.log('🔄 [AUTH CONTEXT] Storage changed, reloading user data...');
+        loadUserData()
+      }
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
     }
   }, [])
 
@@ -95,12 +115,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(userData)
   }
 
+  const reloadUserData = () => {
+    console.log('🔄 [AUTH CONTEXT] Manually reloading user data...');
+    const token = localStorage.getItem('auth_token')
+    const userData = localStorage.getItem('user_data')
+
+    if (token && userData) {
+      try {
+        const parsedUser = JSON.parse(userData)
+        console.log('✅ [AUTH CONTEXT] Manually reloaded user:', {
+          id: parsedUser.id,
+          email: parsedUser.email,
+          role: parsedUser.role
+        });
+        setUser(parsedUser)
+      } catch (error) {
+        console.error('❌ [AUTH CONTEXT] Error manually reloading user data:', error)
+      }
+    }
+  }
+
   const value = {
     user,
     loading,
     login,
     logout,
     updateUser,
+    reloadUserData,
     isAuthenticated: !!user
   }
 
