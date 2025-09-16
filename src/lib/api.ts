@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 import { toast } from 'sonner'
 
-const API_BASE_URL ="ecommerce-backend-production-661f.up.railway.app"
+const API_BASE_URL ="https://ecommerce-backend-production-661f.up.railway.app/api/v1"
 
 class ApiClient {
   private client: AxiosInstance
