@@ -23,6 +23,7 @@ function LoginContent() {
   const [error, setError] = useState('');
   const [mockOtp, setMockOtp] = useState<string | null>(null);
   const [showMockOtp, setShowMockOtp] = useState(false);
+  const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
@@ -79,8 +80,19 @@ function LoginContent() {
         
         toast.success('OTP generated! Check the mock OTP below for testing.');
         
-        // Still redirect to verify-otp page
-        router.push(`/auth/verify-otp?userId=${response.userId}&purpose=login&email=${formData.email}`);
+        // Start countdown timer
+        setRedirectCountdown(5);
+        const countdownInterval = setInterval(() => {
+          setRedirectCountdown(prev => {
+            if (prev === null || prev <= 1) {
+              clearInterval(countdownInterval);
+              router.push(`/auth/verify-otp?userId=${response.userId}&purpose=login&email=${formData.email}`);
+              return null;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+        
         return;
       }
       
@@ -215,6 +227,11 @@ function LoginContent() {
                     <p className="text-xs text-green-600 mt-1">
                       Valid for 10 minutes • Generated at {new Date().toLocaleTimeString()}
                     </p>
+                    {redirectCountdown !== null && (
+                      <p className="text-sm text-orange-600 mt-2 font-medium">
+                        ⏰ Redirecting to verification page in {redirectCountdown} seconds...
+                      </p>
+                    )}
                     <div className="mt-3 flex gap-2 justify-center">
                       <Button
                         type="button"
@@ -238,6 +255,21 @@ function LoginContent() {
                         Generate New
                       </Button>
                     </div>
+                    {redirectCountdown !== null && (
+                      <div className="mt-3">
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => {
+                            setRedirectCountdown(null);
+                            router.push(`/auth/verify-otp?userId=${searchParams.get('userId')}&purpose=login&email=${formData.email}`);
+                          }}
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                          Go to Verification Now
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </AlertDescription>
               </Alert>
