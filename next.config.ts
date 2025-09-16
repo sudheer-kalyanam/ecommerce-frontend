@@ -35,6 +35,20 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Production optimizations
+  compress: true,
+  poweredByHeader: false,
+  generateEtags: false,
+  // Enable static optimization
+  trailingSlash: false,
+  // Optimize for Vercel
+  experimental: {
+    optimizeCss: true,
+  },
+  // Environment variables validation
+  env: {
+    CUSTOM_KEY: process.env.CUSTOM_KEY,
+  },
 };
 
 export default nextConfig;
