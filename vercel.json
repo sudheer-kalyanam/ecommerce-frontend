@@ -10,20 +10,6 @@
       "runtime": "nodejs18.x"
     }
   },
-  "env": {
-    "NEXT_PUBLIC_API_URL": "@next_public_api_url",
-    "NEXT_PUBLIC_RAZORPAY_KEY_ID": "@next_public_razorpay_key_id",
-    "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME": "@next_public_cloudinary_cloud_name",
-    "NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET": "@next_public_cloudinary_upload_preset"
-  },
-  "build": {
-    "env": {
-      "NEXT_PUBLIC_API_URL": "@next_public_api_url",
-      "NEXT_PUBLIC_RAZORPAY_KEY_ID": "@next_public_razorpay_key_id",
-      "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME": "@next_public_cloudinary_cloud_name",
-      "NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET": "@next_public_cloudinary_upload_preset"
-    }
-  },
   "routes": [
     {
       "src": "/api/(.*)",
