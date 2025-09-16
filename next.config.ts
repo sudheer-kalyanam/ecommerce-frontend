@@ -35,16 +35,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Production optimizations
-  compress: true,
-  poweredByHeader: false,
-  generateEtags: false,
-  // Enable static optimization
-  trailingSlash: false,
-  // Optimize for Vercel
-  experimental: {
-    // optimizeCss: true, // Disabled due to critters module issue
-  },
   // Disable ESLint during build for faster deployment
   eslint: {
     ignoreDuringBuilds: true,
@@ -53,13 +43,8 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // Skip static generation for dynamic pages
+  // Force all pages to be dynamic (no static generation)
   trailingSlash: false,
-  // Disable static optimization
-  experimental: {
-    // optimizeCss: true, // Disabled due to critters module issue
-    staticPageGenerationTimeout: 1000,
-  },
 };
 
 export default nextConfig;
