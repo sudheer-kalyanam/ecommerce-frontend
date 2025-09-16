@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 import { toast } from 'sonner'
 
-const API_BASE_URL =  'https://ecommerce-backend-production-661f.up.railway.app/api/v1'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1'
 
 class ApiClient {
   private client: AxiosInstance
@@ -9,7 +9,7 @@ class ApiClient {
   constructor() {
     this.client = axios.create({
       baseURL: API_BASE_URL,
-      timeout: 10000000000000,
+      timeout: 10000,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -22,25 +22,59 @@ class ApiClient {
     // Request interceptor
     this.client.interceptors.request.use(
       (config) => {
+        console.log('🚀 [API CLIENT] Request:', {
+          method: config.method?.toUpperCase(),
+          url: config.url,
+          baseURL: config.baseURL,
+          fullURL: `${config.baseURL}${config.url}`,
+          headers: config.headers,
+          data: config.data,
+          timestamp: new Date().toISOString()
+        });
+
         const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
         if (token) {
           config.headers.Authorization = `Bearer ${token}`
+          console.log('🔑 [API CLIENT] Token added to request headers')
         }
         return config
       },
       (error) => {
+        console.error('❌ [API CLIENT] Request interceptor error:', error)
         return Promise.reject(error)
       }
     )
 
     // Response interceptor
     this.client.interceptors.response.use(
-      (response) => response,
+      (response) => {
+        console.log('✅ [API CLIENT] Response:', {
+          status: response.status,
+          statusText: response.statusText,
+          url: response.config.url,
+          data: response.data,
+          headers: response.headers,
+          timestamp: new Date().toISOString()
+        });
+        return response
+      },
       (error) => {
+        console.error('❌ [API CLIENT] Response error:', {
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          url: error.config?.url,
+          method: error.config?.method?.toUpperCase(),
+          data: error.response?.data,
+          message: error.message,
+          stack: error.stack,
+          timestamp: new Date().toISOString()
+        });
+
         // Only redirect to login if it's not a login/register/otp endpoint
         const isAuthEndpoint = error.config?.url?.includes('/auth/')
         
         if (error.response?.status === 401 && !isAuthEndpoint) {
+          console.log('🔐 [API CLIENT] Unauthorized access, redirecting to login')
           if (typeof window !== 'undefined') {
             localStorage.removeItem('auth_token')
             localStorage.removeItem('user_data')
@@ -51,7 +85,10 @@ class ApiClient {
         // Don't show toast for auth endpoints to prevent duplicate error messages
         if (!isAuthEndpoint) {
           const message = error.response?.data?.message || 'An error occurred'
+          console.log('📢 [API CLIENT] Showing error toast:', message)
           toast.error(message)
+        } else {
+          console.log('🔇 [API CLIENT] Skipping toast for auth endpoint to prevent duplicate messages')
         }
         
         return Promise.reject(error)
@@ -100,8 +137,33 @@ export const api = new ApiClient()
 
 // Auth API
 export const authApi = {
-  login: (credentials: { email: string; password: string }) =>
-    api.post('/auth/login', credentials),
+  login: async (credentials: { email: string; password: string }) => {
+    console.log('🔐 [AUTH API] Login attempt:', {
+      email: credentials.email,
+      hasPassword: !!credentials.password,
+      timestamp: new Date().toISOString()
+    });
+    
+    try {
+      const response = await api.post('/auth/login', credentials) as any;
+      console.log('✅ [AUTH API] Login successful:', {
+        hasToken: !!response.access_token,
+        hasUser: !!response.user,
+        userRole: response.user?.role,
+        requiresOTP: response.requiresOTP,
+        timestamp: new Date().toISOString()
+      });
+      return response;
+    } catch (error: any) {
+      console.error('❌ [AUTH API] Login failed:', {
+        email: credentials.email,
+        error: error.response?.data || error.message,
+        status: error.response?.status,
+        timestamp: new Date().toISOString()
+      });
+      throw error;
+    }
+  },
   
   register: (userData: any) =>
     api.post('/auth/register', userData),
