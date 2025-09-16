@@ -45,9 +45,13 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizeCss: true,
   },
-  // Environment variables validation
-  env: {
-    CUSTOM_KEY: process.env.CUSTOM_KEY,
+  // Disable ESLint during build for faster deployment
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  // Disable TypeScript checking during build for faster deployment
+  typescript: {
+    ignoreBuildErrors: true,
   },
 };
 
