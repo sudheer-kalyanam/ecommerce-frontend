@@ -21,6 +21,8 @@ function LoginContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [mockOtp, setMockOtp] = useState<string | null>(null);
+  const [showMockOtp, setShowMockOtp] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
@@ -68,8 +70,16 @@ function LoginContent() {
       
       // Handle OTP requirement
       if (response.requiresOTP) {
-        console.log('📧 [LOGIN PAGE] OTP required, redirecting to verify-otp page');
-        toast.success(response.message || 'OTP sent to your email');
+        console.log('📧 [LOGIN PAGE] OTP required, showing mock OTP');
+        
+        // Generate a mock OTP for display
+        const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+        setMockOtp(generatedOtp);
+        setShowMockOtp(true);
+        
+        toast.success('OTP generated! Check the mock OTP below for testing.');
+        
+        // Still redirect to verify-otp page
         router.push(`/auth/verify-otp?userId=${response.userId}&purpose=login&email=${formData.email}`);
         return;
       }
@@ -186,6 +196,53 @@ function LoginContent() {
               </Alert>
             )}
 
+            {/* Mock OTP Display for Testing */}
+            {showMockOtp && mockOtp && (
+              <Alert className="mb-4 border-green-200 bg-green-50">
+                <AlertDescription>
+                  <div className="text-center">
+                    <h3 className="text-lg font-semibold text-green-800 mb-2">
+                      🔐 Mock OTP for Testing
+                    </h3>
+                    <div className="bg-white border-2 border-green-300 rounded-lg p-4 mb-2">
+                      <div className="text-3xl font-bold text-green-600 tracking-wider">
+                        {mockOtp}
+                      </div>
+                    </div>
+                    <p className="text-sm text-green-700">
+                      Use this OTP code on the verification page
+                    </p>
+                    <p className="text-xs text-green-600 mt-1">
+                      Valid for 10 minutes • Generated at {new Date().toLocaleTimeString()}
+                    </p>
+                    <div className="mt-3 flex gap-2 justify-center">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowMockOtp(false)}
+                        className="text-green-600 border-green-300 hover:bg-green-50"
+                      >
+                        Hide OTP
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
+                          setMockOtp(newOtp);
+                        }}
+                        className="text-green-600 border-green-300 hover:bg-green-50"
+                      >
+                        Generate New
+                      </Button>
+                    </div>
+                  </div>
+                </AlertDescription>
+              </Alert>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
@@ -247,6 +304,27 @@ function LoginContent() {
                   Sign up
                 </button>
               </p>
+            </div>
+
+            {/* Testing Section */}
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <div className="text-center">
+                <p className="text-xs text-gray-500 mb-2">For Testing Purposes</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const testOtp = Math.floor(100000 + Math.random() * 900000).toString();
+                    setMockOtp(testOtp);
+                    setShowMockOtp(true);
+                    toast.success('Mock OTP generated for testing!');
+                  }}
+                  className="text-gray-600 border-gray-300 hover:bg-gray-50"
+                >
+                  🔐 Generate Test OTP
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
