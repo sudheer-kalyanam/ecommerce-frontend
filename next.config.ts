@@ -43,7 +43,7 @@ const nextConfig: NextConfig = {
   trailingSlash: false,
   // Optimize for Vercel
   experimental: {
-    optimizeCss: true,
+    // optimizeCss: true, // Disabled due to critters module issue
   },
   // Disable ESLint during build for faster deployment
   eslint: {
