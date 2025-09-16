@@ -1,9 +1,6 @@
 'use client';
 
-// Force dynamic rendering to avoid static generation issues
-export const dynamic = 'force-dynamic';
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,7 +11,7 @@ import { Eye, EyeOff, Mail, Lock, ArrowLeft } from 'lucide-react';
 import { authApi } from '@/lib/api';
 import { toast } from 'sonner';
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [formData, setFormData] = useState({
@@ -178,5 +175,38 @@ export default function LoginPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+// Loading component for Suspense fallback
+function LoginLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div className="text-center">
+          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+            Loading...
+          </h2>
+          <p className="mt-2 text-sm text-gray-600">
+            Please wait while we load the login page.
+          </p>
+        </div>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginLoading />}>
+      <LoginContent />
+    </Suspense>
   );
 }

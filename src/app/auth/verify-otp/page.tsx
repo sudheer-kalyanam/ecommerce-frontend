@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -13,7 +13,7 @@ import { authApi, sellerRegistrationApi } from '@/lib/api'
 import { useAuth } from '@/contexts/AuthContext'
 import { toast } from 'sonner'
 
-export default function VerifyOtpPage() {
+function VerifyOtpContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { login } = useAuth()
@@ -298,5 +298,32 @@ export default function VerifyOtpPage() {
         </Card>
       </motion.div>
     </div>
+  )
+}
+
+// Loading component for Suspense fallback
+function VerifyOtpLoading() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-purple-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardContent className="pt-6">
+          <div className="text-center">
+            <div className="mx-auto w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mb-4">
+              <Mail className="w-8 h-8 text-primary-600" />
+            </div>
+            <h2 className="text-xl font-semibold mb-2">Loading...</h2>
+            <p className="text-muted-foreground">Please wait while we load the verification page.</p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+export default function VerifyOtpPage() {
+  return (
+    <Suspense fallback={<VerifyOtpLoading />}>
+      <VerifyOtpContent />
+    </Suspense>
   )
 }
