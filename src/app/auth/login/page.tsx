@@ -23,8 +23,9 @@ function LoginContent() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('auth_token');
     if (token) {
+      console.log('🔐 [LOGIN PAGE] User already logged in, redirecting to customer page');
       router.push('/customer');
     }
   }, [router]);
@@ -34,16 +35,34 @@ function LoginContent() {
     setLoading(true);
     setError('');
 
+    console.log('🔐 [LOGIN PAGE] Form submission started:', {
+      email: formData.email,
+      hasPassword: !!formData.password,
+      timestamp: new Date().toISOString()
+    });
+
     try {
-      const response = await authApi.login(formData);
+      const response:any = await authApi.login(formData);
+      console.log('📥 [LOGIN PAGE] Login response received:', response);
       
-      if (response.success) {
-        localStorage.setItem('token', response.token);
-        localStorage.setItem('user', JSON.stringify(response.user));
+      // Handle OTP requirement
+      if (response.requiresOTP) {
+        console.log('📧 [LOGIN PAGE] OTP required, redirecting to verify-otp page');
+        toast.success(response.message || 'OTP sent to your email');
+        router.push(`/auth/verify-otp?userId=${response.userId}&purpose=login&email=${formData.email}`);
+        return;
+      }
+      
+      // Handle successful login with token
+      if (response.access_token && response.user) {
+        console.log('✅ [LOGIN PAGE] Login successful, storing token and user data');
+        localStorage.setItem('auth_token', response.access_token);
+        localStorage.setItem('user_data', JSON.stringify(response.user));
         
         toast.success('Login successful!');
         
         // Redirect based on user role
+        console.log('🔄 [LOGIN PAGE] Redirecting based on user role:', response.user.role);
         if (response.user.role === 'ADMIN') {
           router.push('/admin');
         } else if (response.user.role === 'SELLER') {
@@ -52,10 +71,29 @@ function LoginContent() {
           router.push('/customer');
         }
       } else {
-        setError(response.message || 'Login failed');
+        console.log('❌ [LOGIN PAGE] Invalid response format:', response);
+        setError('Invalid response from server');
       }
     } catch (error: any) {
-      setError(error.response?.data?.message || 'An error occurred');
+      console.error('❌ [LOGIN PAGE] Login error:', {
+        error: error.response?.data || error.message,
+        status: error.response?.status,
+        code: error.code,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Handle specific error types
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        setError('Connection timeout. Please check your internet connection and try again.');
+      } else if (error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
+        setError('Unable to connect to server. Please check your internet connection.');
+      } else if (error.response?.status === 401) {
+        setError(error.response?.data?.message || 'Invalid email or password');
+      } else if (error.response?.status === 500) {
+        setError('Server error. Please try again later.');
+      } else {
+        setError(error.response?.data?.message || 'An error occurred. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
