@@ -56,6 +56,14 @@ function LoginContent() {
       // Handle successful login with token
       if (response.access_token && response.user) {
         console.log('✅ [LOGIN PAGE] Login successful, storing token and user data');
+        console.log('👤 [LOGIN PAGE] User data received:', {
+          id: response.user.id,
+          email: response.user.email,
+          role: response.user.role,
+          firstName: response.user.firstName,
+          lastName: response.user.lastName
+        });
+        
         localStorage.setItem('auth_token', response.access_token);
         localStorage.setItem('user_data', JSON.stringify(response.user));
         
@@ -63,11 +71,21 @@ function LoginContent() {
         
         // Redirect based on user role
         console.log('🔄 [LOGIN PAGE] Redirecting based on user role:', response.user.role);
+        console.log('🔍 [LOGIN PAGE] Role comparison:', {
+          'response.user.role': response.user.role,
+          'typeof role': typeof response.user.role,
+          'role === "ADMIN"': response.user.role === 'ADMIN',
+          'role === "SELLER"': response.user.role === 'SELLER'
+        });
+        
         if (response.user.role === 'ADMIN') {
+          console.log('🎯 [LOGIN PAGE] Redirecting to /admin');
           router.push('/admin');
         } else if (response.user.role === 'SELLER') {
+          console.log('🎯 [LOGIN PAGE] Redirecting to /seller');
           router.push('/seller');
         } else {
+          console.log('🎯 [LOGIN PAGE] Redirecting to /customer (default)');
           router.push('/customer');
         }
       } else {

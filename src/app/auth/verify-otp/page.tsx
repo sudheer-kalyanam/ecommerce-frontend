@@ -103,11 +103,29 @@ function VerifyOtpContent() {
           
           // Redirect based on user role
           const user = response.user
+          console.log('👤 [VERIFY OTP] User data received:', {
+            id: user.id,
+            email: user.email,
+            role: user.role,
+            firstName: user.firstName,
+            lastName: user.lastName
+          });
+          
+          console.log('🔍 [VERIFY OTP] Role comparison:', {
+            'user.role': user.role,
+            'typeof role': typeof user.role,
+            'role === "ADMIN"': user.role === 'ADMIN',
+            'role === "SELLER"': user.role === 'SELLER'
+          });
+          
           if (user.role === 'ADMIN') {
+            console.log('🎯 [VERIFY OTP] Redirecting to /admin');
             router.push('/admin')
           } else if (user.role === 'SELLER') {
+            console.log('🎯 [VERIFY OTP] Redirecting to /seller');
             router.push('/seller')
           } else {
+            console.log('🎯 [VERIFY OTP] Redirecting to /customer (default)');
             router.push('/customer')
           }
         }
